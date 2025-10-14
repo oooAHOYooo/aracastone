@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Dict
 import shutil
+import sys
 import blake3
 
 
@@ -11,11 +12,19 @@ class StorageError(Exception):
 
 
 def get_repo_root() -> Path:
-    """Return the repository root and ensure the `data/` directory exists.
+    """Return the base root for app data and ensure `data/` exists.
 
-    The repo root is inferred from this file location assuming standard layout.
+    - In development (not frozen), use the repository root.
+    - When packaged (frozen) on macOS, use `~/Library/Application Support/ArcaStone`.
+    - For other frozen platforms, use `~/.arcastone`.
     """
-    root = Path(__file__).resolve().parents[2]
+    if getattr(sys, "frozen", False):
+        if sys.platform == "darwin":
+            root = Path.home() / "Library" / "Application Support" / "ArcaStone"
+        else:
+            root = Path.home() / ".arcastone"
+    else:
+        root = Path(__file__).resolve().parents[2]
     data_dir = root / "data"
     data_dir.mkdir(parents=True, exist_ok=True)
     return root

@@ -1,28 +1,30 @@
 # Python
 __pycache__/
-*.pyc
-.pytest_cache/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.dll
 
-# Virtualenvs
+# Virtual env
 .venv/
-venv/
+.env/
 
-# OS
+# Build artifacts
+build/
+dist/
+*.spec
+
+# Caches
+.mypy_cache/
+.pytest_cache/
+.coverage*
+
+# macOS
 .DS_Store
 
-# ArcaStone data and caches
-data/blobs/**
-data/index/**
-data/models/**
-!data/.gitkeep
-
-# Model caches
-**/.cache/
-
-# FAISS, builds, specs
-.faiss/
-dist/
-build/
-*.spec
+# Local app data
+arcastone.egg-info/
+data/
 
 

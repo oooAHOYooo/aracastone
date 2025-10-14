@@ -4,7 +4,7 @@ from typing import List
 from pathlib import Path
 
 from PySide6.QtCore import Signal, Qt
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QListWidget, QPushButton, QFileDialog
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QListWidget, QPushButton, QFileDialog, QAbstractItemView
 
 from ..core.manifest import list_documents
 
@@ -16,7 +16,7 @@ class ExportPanel(QWidget):
         super().__init__()
         layout = QVBoxLayout(self)
         self.docs = QListWidget()
-        self.docs.setSelectionMode(self.docs.MultiSelection)
+        self.docs.setSelectionMode(QAbstractItemView.MultiSelection)
         self.refresh_btn = QPushButton("Refresh")
         self.export_btn = QPushButton("Export to Folder…")
 

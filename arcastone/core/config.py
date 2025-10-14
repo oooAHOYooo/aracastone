@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+import sys
 import os
 
 
@@ -19,6 +20,18 @@ class Paths:
 
 
 def _discover_base_dir() -> Path:
+    """Return base directory for app data.
+
+    - In development (not frozen), use the repository root so `data/` lives in the project.
+    - When packaged (frozen) on macOS, use a user-writable location under
+      `~/Library/Application Support/ArcaStone`.
+    - For other frozen platforms, fall back to the user's home directory under
+      `~/.arcastone`.
+    """
+    if getattr(sys, "frozen", False):  # running from a bundled app
+        if sys.platform == "darwin":
+            return Path.home() / "Library" / "Application Support" / "ArcaStone"
+        return Path.home() / ".arcastone"
     # Resolve to repo root assuming this file is at arcastone/core/config.py
     return Path(__file__).resolve().parents[2]
 
