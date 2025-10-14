@@ -19,6 +19,7 @@ class ExportPanel(QWidget):
         self.docs.setSelectionMode(QAbstractItemView.MultiSelection)
         self.refresh_btn = QPushButton("Refresh")
         self.export_btn = QPushButton("Export to Folder…")
+        self._selected_from_search: set[str] = set()
 
         layout.addWidget(self.docs)
         layout.addWidget(self.refresh_btn)
@@ -38,6 +39,9 @@ class ExportPanel(QWidget):
             item = QListWidgetItem(text)
             item.setData(Qt.UserRole, d["digest"])  # store full digest
             self.docs.addItem(item)
+            # auto-select items previously toggled in Search
+            if d["digest"] in self._selected_from_search:
+                item.setSelected(True)
 
     def _export(self) -> None:
         items = self.docs.selectedItems()
@@ -51,5 +55,17 @@ class ExportPanel(QWidget):
         dest = QFileDialog.getExistingDirectory(self, "Select Destination Folder", str(Path.home()))
         if dest:
             self.exportRequested.emit(digests, Path(dest))
+
+    def toggle_digest(self, digest: str, selected: bool) -> None:
+        if selected:
+            self._selected_from_search.add(digest)
+        else:
+            self._selected_from_search.discard(digest)
+        # sync selection state in the list if item exists
+        for i in range(self.docs.count()):
+            it = self.docs.item(i)
+            if it.data(Qt.UserRole) == digest:
+                it.setSelected(selected)
+                break
 
 

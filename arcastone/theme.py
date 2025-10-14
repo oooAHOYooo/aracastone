@@ -3,6 +3,8 @@ from __future__ import annotations
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication, QStyle, QWidget, QGraphicsDropShadowEffect
+from PySide6.QtGui import QPixmap
+from pathlib import Path
 
 
 # Palette tokens (CleanMyMac-adjacent)
@@ -35,7 +37,7 @@ def apply_qss(app: QApplication) -> None:
         border-bottom: 1px solid {BORDER};
     }}
     /* Cards (use card(widget) helper for shadow) */
-    .Card {{
+    QWidget[class="Card"] {{
         background: {SURFACE};
         border: 1px solid {BORDER};
         border-radius: 18px;
@@ -50,7 +52,7 @@ def apply_qss(app: QApplication) -> None:
         font-weight: 600;
         color: {TEXT_PRIMARY};
     }}
-    QLabel["secondary"="true"] {{
+    QLabel[secondary="true"] {{
         color: {SECONDARY};
     }}
     QPushButton {{
@@ -61,7 +63,7 @@ def apply_qss(app: QApplication) -> None:
     }}
     QPushButton:hover {{ border-color: {PRIMARY_ACCENT}; }}
     QPushButton:pressed {{ background: #f0f0f5; }}
-    QPushButton["accent"="true"] {{
+    QPushButton[accent="true"] {{
         background: {PRIMARY_ACCENT};
         color: white;
         border: 1px solid {PRIMARY_ACCENT};
@@ -120,6 +122,16 @@ def get_icon(name: str) -> QIcon:
         # Fallback empty icon
         return QIcon()
     return style.standardIcon(sp)
+
+
+def app_logo_icon() -> QIcon:
+    """Return the branded app icon if available."""
+    base = Path(__file__).resolve().parents[2]
+    svg = base / "assets" / "brand" / "arcastone.svg"
+    if svg.exists():
+        # Qt can load SVG into QIcon via QPixmap with svg plugin available
+        return QIcon(str(svg))
+    return QIcon()
 
 
 # Backwards compatibility: keep the old name as a no-op wrapper

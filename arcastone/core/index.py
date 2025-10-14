@@ -89,6 +89,49 @@ def _open_index() -> faiss.Index:
     return faiss.read_index(str(FAISS_PATH))
 
 
+def index_stats() -> Dict[str, int]:
+    """Return basic index stats: files, chunks, last_updated_epoch, faiss_vectors.
+
+    If data is missing, returns zeros.
+    """
+    init_index()
+    files = 0
+    chunks = 0
+    last_updated = 0
+    faiss_vectors = 0
+    # sqlite
+    try:
+        conn = _conn()
+        cur = conn.cursor()
+        cur.execute("SELECT COUNT(1) FROM files")
+        files = int(cur.fetchone()[0])
+        cur.execute("SELECT COUNT(1) FROM chunks")
+        chunks = int(cur.fetchone()[0])
+        # approximate last update = max(rowid) timestamp from sqlite file mtime
+        try:
+            last_updated = int(CATALOG_DB.stat().st_mtime)
+        except Exception:
+            last_updated = 0
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
+    # faiss
+    if FAISS_PATH.exists():
+        try:
+            idx = _open_index()
+            faiss_vectors = int(idx.ntotal)
+        except Exception:
+            faiss_vectors = 0
+    return {
+        "files": files,
+        "chunks": chunks,
+        "last_updated_epoch": last_updated,
+        "faiss_vectors": faiss_vectors,
+    }
+
+
 def register_file(meta: Dict[str, object]) -> int:
     """Upsert file metadata into the catalog and return file id.
 
