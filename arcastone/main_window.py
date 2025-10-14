@@ -24,6 +24,7 @@ from .workers.search_worker import SearchWorker
 from .workers.export_worker import ExportWorker
 from .workers.qa_worker import QAWorker
 from .widgets.qa_panel import QAPanel
+from .widgets.sitemap_panel import SitemapPanel
 from .core.config import ensure_directories
 
 
@@ -41,6 +42,7 @@ class MainWindow(QMainWindow):
         self.sidebar.addItem(QListWidgetItem("Home"))
         self.sidebar.addItem(QListWidgetItem("Search"))
         self.sidebar.addItem(QListWidgetItem("Export"))
+        self.sidebar.addItem(QListWidgetItem("Sitemap"))
         self.sidebar.addItem(QListWidgetItem("Q&A"))
         self.sidebar.addItem(QListWidgetItem("About"))
         self.sidebar.setFixedWidth(160)
@@ -48,6 +50,7 @@ class MainWindow(QMainWindow):
         self.home = DropIngest()
         self.search = SearchPanel()
         self.export = ExportPanel()
+        self.sitemap = SitemapPanel()
         self.qa = QAPanel()
         self.about = AboutPanel()
 
@@ -57,10 +60,12 @@ class MainWindow(QMainWindow):
         self.stack_layout.addWidget(self.home)
         self.stack_layout.addWidget(self.search)
         self.stack_layout.addWidget(self.export)
+        self.stack_layout.addWidget(self.sitemap)
         self.stack_layout.addWidget(self.qa)
         self.stack_layout.addWidget(self.about)
         self.search.hide()
         self.export.hide()
+        self.sitemap.hide()
         self.qa.hide()
         self.about.hide()
 
@@ -84,6 +89,7 @@ class MainWindow(QMainWindow):
         self.search.querySubmitted.connect(self._start_search)
         self.search.toggleExport.connect(self._toggle_export_digest)
         self.qa.ask.connect(self._start_qa)
+        self.sitemap.addToExport.connect(lambda d: self.export.toggle_digest(d, True))
         self.export.exportRequested.connect(self._start_export)
 
         self._pending_files: list[Path] = []
@@ -100,8 +106,9 @@ class MainWindow(QMainWindow):
         self.home.setVisible(row == 0)
         self.search.setVisible(row == 1)
         self.export.setVisible(row == 2)
-        self.qa.setVisible(row == 3)
-        self.about.setVisible(row == 4)
+        self.sitemap.setVisible(row == 3)
+        self.qa.setVisible(row == 4)
+        self.about.setVisible(row == 5)
 
     def _ingest_files(self, files: list[Path]) -> None:
         self._pending_files.extend(files)
