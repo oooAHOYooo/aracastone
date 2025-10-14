@@ -22,4 +22,7 @@
  [tool.pytest.ini_options]
  addopts = "-q"
 
+ [tool.setuptools.packages.find]
+ include = ["arcastone*"]
+
 
