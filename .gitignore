@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Virtualenvs
+.venv/
+venv/
+
+# OS
+.DS_Store
+
+# ArcaStone data and caches
+data/blobs/**
+data/index/**
+data/models/**
+!data/.gitkeep
+
+# Model caches
+**/.cache/
+
+# FAISS, builds, specs
+.faiss/
+dist/
+build/
+*.spec
+
+
