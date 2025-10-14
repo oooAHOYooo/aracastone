@@ -28,9 +28,14 @@ dev:
 ## Model cache (offline-first)
 This app does not make network calls. You must have the model locally cached.
 
-1. On a machine with internet, download the model directory for `all-MiniLM-L6-v2` using sentence-transformers.
-2. Copy the resulting directory into `data/models/`.
-3. Ensure env is set automatically by the app to use `SENTENCE_TRANSFORMERS_HOME=data/models`.
+1. Embedding model: on a machine with internet, cache `all-MiniLM-L6-v2` using sentence-transformers and place it under `data/models/` (the app sets `SENTENCE_TRANSFORMERS_HOME` automatically).
+2. Local LLM for Q&A (TinyLlama, default):
+```bash
+python scripts/models/prepare_local_llm.py \
+  --model TinyLlama/TinyLlama-1.1B-Chat-v1.0 \
+  --dst data/models/llm
+```
+Optionally set `ARCASTONE_LOCAL_LLM_PATH` to point to a custom location.
 
 ## Run
 ```bash
