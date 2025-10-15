@@ -14,9 +14,9 @@ Offline-first desktop PDF indexing and search app (PySide6), CleanMyMac-style UI
 
 ## Install
 ```bash
-# using Poetry (recommended)
-pipx install poetry  # if needed
-poetry install
+# Quickstart with venv + pip (no Poetry required)
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
 ```
 
 ### Dev (make target)
@@ -39,7 +39,8 @@ Optionally set `ARCASTONE_LOCAL_LLM_PATH` to point to a custom location.
 
 ## Run
 ```bash
-poetry run python -m arcastone.app
+# from repo root, with the venv activated
+python app.py
 ```
 
 ## Tests
@@ -55,7 +56,7 @@ poetry run pytest -q
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -e .
-python arcastone/app.py
+python -m arcastone.app
 ```
 
 ## Usage
