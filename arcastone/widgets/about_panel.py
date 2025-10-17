@@ -48,6 +48,17 @@ class AboutPanel(QWidget):
       <p>ArcaStone is a desktop application that ingests, indexes, and searches personal documents entirely offline. The system turns unstructured PDFs into a portable, encrypted-ready “vault” that enables instant, natural-language search without cloud dependence. The near-term market is creators, academics, and professionals seeking durable, private knowledge preservation. Long-term, ArcaStone becomes a household <em>digital estate</em> product.</p>
     </div>
 
+    <div class="card">
+      <h2>MVP Goals</h2>
+      <ul>
+        <li><span class="tag">Done</span> Ingest PDFs into a content-addressed local store (BLAKE3, de-dup).</li>
+        <li><span class="tag">Done</span> Index text with local embeddings (<code>all-MiniLM-L6-v2</code>) and FAISS.</li>
+        <li><span class="tag">Done</span> Search with natural language and view ranked snippets (offline-only).</li>
+        <li><span class="tag">Done</span> Export selected originals to a destination folder/USB.</li>
+        <li><span class="tag">Optional</span> Local Q&A over your vault — recommended model: <code>Qwen/Qwen2.5-1.5B-Instruct</code>. Configure under <em>Q&A</em> tab (“Set Model Path…”).</li>
+      </ul>
+    </div>
+
     <h2>Problem</h2>
     <ul>
       <li><b>Fragmented archives</b>: Research and creative work is scattered across drives, email, and SaaS silos.</li>

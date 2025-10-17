@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Tuple
 import os
 
 import torch
@@ -32,6 +32,34 @@ def _get_llm_paths() -> Optional[Path]:
     return p if p.exists() else None
 
 
+def set_local_llm_path(path: str) -> bool:
+    """Set (or clear) the preferred on-disk local LLM path.
+
+    - When set, it overrides the default lookup under MODELS_DIR/llm.
+    - Clears any cached tokenizer/model so the next use reloads from disk.
+    Returns True if the provided path exists; False otherwise.
+    """
+    global _LLM, _TOKENIZER
+    p = Path(path).expanduser() if path else None
+    if p and p.exists():
+        os.environ["ARCASTONE_LOCAL_LLM_PATH"] = str(p)
+        _LLM = None
+        _TOKENIZER = None
+        return True
+    # Clear override when invalid
+    if "ARCASTONE_LOCAL_LLM_PATH" in os.environ:
+        os.environ.pop("ARCASTONE_LOCAL_LLM_PATH", None)
+    _LLM = None
+    _TOKENIZER = None
+    return False
+
+
+def llm_status() -> Tuple[bool, Optional[str]]:
+    """Return (available, path) for the local LLM directory."""
+    p = _get_llm_paths()
+    return (p is not None, str(p) if p else None)
+
+
 def get_local_llm():
     """Load a local HF model from disk only.
 
@@ -47,13 +75,33 @@ def get_local_llm():
     try:
         os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
         os.environ.setdefault("HF_HUB_DISABLE_TELEMETRY", "1")
+        # First attempt: standard load (most models)
         tok = AutoTokenizer.from_pretrained(str(model_path), local_files_only=True)
-        model = AutoModelForCausalLM.from_pretrained(str(model_path), local_files_only=True)
-        model.eval()
-        _TOKENIZER, _LLM = tok, model
-        return tok, model
+        model = AutoModelForCausalLM.from_pretrained(
+            str(model_path),
+            local_files_only=True,
+            low_cpu_mem_usage=True,
+            torch_dtype=torch.float32,
+        )
     except Exception:
-        return None, None
+        # Fallback for models requiring custom code (e.g., some Qwen variants)
+        try:
+            tok = AutoTokenizer.from_pretrained(
+                str(model_path), local_files_only=True, trust_remote_code=True
+            )
+            model = AutoModelForCausalLM.from_pretrained(
+                str(model_path),
+                local_files_only=True,
+                low_cpu_mem_usage=True,
+                torch_dtype=torch.float32,
+                trust_remote_code=True,
+            )
+        except Exception:
+            return None, None
+    model.to(torch.device("cpu"))
+    model.eval()
+    _TOKENIZER, _LLM = tok, model
+    return tok, model
 
 
 def build_context(query: str, top_k: int = 5) -> tuple[str, List[str]]:

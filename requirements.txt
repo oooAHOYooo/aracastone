@@ -10,3 +10,4 @@ sqlalchemy==2.0.32
 # Q&A local LLM runtime
 torch==2.3.1
 transformers==4.42.4
+safetensors==0.4.4

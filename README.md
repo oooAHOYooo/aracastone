@@ -29,10 +29,10 @@ dev:
 This app does not make network calls. You must have the model locally cached.
 
 1. Embedding model: on a machine with internet, cache `all-MiniLM-L6-v2` using sentence-transformers and place it under `data/models/` (the app sets `SENTENCE_TRANSFORMERS_HOME` automatically).
-2. Local LLM for Q&A (TinyLlama, default):
+2. Local LLM for Q&A (recommended: Qwen2.5 1.5B Instruct):
 ```bash
 python scripts/models/prepare_local_llm.py \
-  --model TinyLlama/TinyLlama-1.1B-Chat-v1.0 \
+  --model Qwen/Qwen2.5-1.5B-Instruct \
   --dst data/models/llm
 ```
 Optionally set `ARCASTONE_LOCAL_LLM_PATH` to point to a custom location.
@@ -92,6 +92,21 @@ python scripts/macos/build_dmg.py
 Place `Install ArcaStone.command` and `ArcaStone.app` inside the DMG for a simple guided install.
 
 Note: For distribution, sign and notarize the app and installer per Apple docs.
+
+Q&A model with PyInstaller:
+- The model directory is not bundled. Place Qwen locally (e.g., `data/models/llm`) and use Q&A → “Set Model Path…”.
+- Ensure runtime includes `torch`, `transformers`, and `safetensors`. If freezing causes import issues, add hidden imports via a `.spec` file for transformers components.
+
+## Fully offline bundle (copy everything)
+To prepare a complete offline bundle of your vault, models, and indexes, copy the entire `data/` directory to the target machine:
+
+```bash
+python scripts/bundle_offline.py --dst /path/to/usb-or-target
+```
+
+On the target machine:
+- Place `data/` next to the app bundle (or in the project root for the Python app).
+- Open Q&A → “Set Model Path…” and select `data/models/llm`.
 
 ### System dependencies (optional for OCR)
 - `ocrmypdf` and `tesseract` if you want OCR. Without them, text is extracted via `pypdf` only.

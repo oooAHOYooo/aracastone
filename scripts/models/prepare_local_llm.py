@@ -11,8 +11,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Download a local HF LLM for ArcaStone")
     parser.add_argument(
         "--model",
-        default="TinyLlama/TinyLlama-1.1B-Chat-v1.0",
-        help="Hugging Face model id to download (default: TinyLlama/TinyLlama-1.1B-Chat-v1.0)",
+        default="Qwen/Qwen2.5-1.5B-Instruct",
+        help=(
+            "Hugging Face model id to download (default: Qwen/Qwen2.5-1.5B-Instruct). "
+            "Good quality on CPU, permissive license, ~1.5B params."
+        ),
     )
     parser.add_argument(
         "--dst",
