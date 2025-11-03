@@ -25,6 +25,8 @@ from .workers.export_worker import ExportWorker
 from .workers.qa_worker import QAWorker
 from .widgets.qa_panel import QAPanel
 from .widgets.sitemap_panel import SitemapPanel
+from .workers.retrieval_worker import RetrievalWorker
+from .widgets.guide_panel import GuidePanel
 from .core.config import ensure_directories
 
 
@@ -43,6 +45,7 @@ class MainWindow(QMainWindow):
         self.sidebar.addItem(QListWidgetItem("Search"))
         self.sidebar.addItem(QListWidgetItem("Export"))
         self.sidebar.addItem(QListWidgetItem("Sitemap"))
+        self.sidebar.addItem(QListWidgetItem("Guide"))
         self.sidebar.addItem(QListWidgetItem("Q&A"))
         self.sidebar.addItem(QListWidgetItem("About"))
         self.sidebar.setFixedWidth(160)
@@ -51,6 +54,7 @@ class MainWindow(QMainWindow):
         self.search = SearchPanel()
         self.export = ExportPanel()
         self.sitemap = SitemapPanel()
+        self.guide = GuidePanel()
         self.qa = QAPanel()
         self.about = AboutPanel()
 
@@ -61,11 +65,13 @@ class MainWindow(QMainWindow):
         self.stack_layout.addWidget(self.search)
         self.stack_layout.addWidget(self.export)
         self.stack_layout.addWidget(self.sitemap)
+        self.stack_layout.addWidget(self.guide)
         self.stack_layout.addWidget(self.qa)
         self.stack_layout.addWidget(self.about)
         self.search.hide()
         self.export.hide()
         self.sitemap.hide()
+        self.guide.hide()
         self.qa.hide()
         self.about.hide()
 
@@ -89,6 +95,7 @@ class MainWindow(QMainWindow):
         self.search.querySubmitted.connect(self._start_search)
         self.search.toggleExport.connect(self._toggle_export_digest)
         self.qa.ask.connect(self._start_qa)
+        self.guide.ask.connect(self._start_retrieval)
         self.sitemap.addToExport.connect(lambda d: self.export.toggle_digest(d, True))
         self.export.exportRequested.connect(self._start_export)
 
@@ -107,8 +114,9 @@ class MainWindow(QMainWindow):
         self.search.setVisible(row == 1)
         self.export.setVisible(row == 2)
         self.sitemap.setVisible(row == 3)
-        self.qa.setVisible(row == 4)
-        self.about.setVisible(row == 5)
+        self.guide.setVisible(row == 4)
+        self.qa.setVisible(row == 5)
+        self.about.setVisible(row == 6)
 
     def _ingest_files(self, files: list[Path]) -> None:
         self._pending_files.extend(files)
@@ -205,6 +213,22 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, "Q&A Error", msg)
 
         self.status.info("Answering…")
+        self._track_worker(worker)
+        worker.finished_ok.connect(finished)
+        worker.error.connect(err)
+        worker.start()
+
+    def _start_retrieval(self, question: str) -> None:
+        worker = RetrievalWorker(question)
+
+        def finished(res):
+            self.guide.show_markdown(res.markdown)
+            self.status.info("Guide ready")
+
+        def err(msg: str) -> None:
+            QMessageBox.critical(self, "Guide Error", msg)
+
+        self.status.info("Searching…")
         self._track_worker(worker)
         worker.finished_ok.connect(finished)
         worker.error.connect(err)
