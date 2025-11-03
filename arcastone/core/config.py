@@ -31,7 +31,16 @@ def _discover_base_dir() -> Path:
     if getattr(sys, "frozen", False):  # running from a bundled app
         if sys.platform == "darwin":
             return Path.home() / "Library" / "Application Support" / "ArcaStone"
-        return Path.home() / ".arcastone"
+        if sys.platform.startswith("win"):
+            base = os.environ.get("LOCALAPPDATA") or os.environ.get("APPDATA")
+            if base:
+                return Path(base) / "ArcaStone"
+            return Path.home() / "AppData" / "Local" / "ArcaStone"
+        # Linux / others: XDG_DATA_HOME or ~/.local/share
+        xdg = os.environ.get("XDG_DATA_HOME")
+        if xdg:
+            return Path(xdg) / "ArcaStone"
+        return Path.home() / ".local" / "share" / "ArcaStone"
     # Resolve to repo root assuming this file is at arcastone/core/config.py
     return Path(__file__).resolve().parents[2]
 

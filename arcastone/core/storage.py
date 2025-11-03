@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Dict
 import shutil
 import sys
+import os
 import blake3
 
 
@@ -21,8 +22,12 @@ def get_repo_root() -> Path:
     if getattr(sys, "frozen", False):
         if sys.platform == "darwin":
             root = Path.home() / "Library" / "Application Support" / "ArcaStone"
+        elif sys.platform.startswith("win"):
+            base = os.environ.get("LOCALAPPDATA") or os.environ.get("APPDATA")
+            root = (Path(base) if base else Path.home() / "AppData" / "Local") / "ArcaStone"
         else:
-            root = Path.home() / ".arcastone"
+            xdg = os.environ.get("XDG_DATA_HOME")
+            root = (Path(xdg) if xdg else Path.home() / ".local" / "share") / "ArcaStone"
     else:
         root = Path(__file__).resolve().parents[2]
     data_dir = root / "data"

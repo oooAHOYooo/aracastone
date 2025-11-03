@@ -1,0 +1,51 @@
+name: build-desktop
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+        python-version: ["3.11"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          python -m pip install -U pip
+          pip install -e .
+          pip install pyinstaller
+
+      - name: Build app
+        shell: bash
+        run: |
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            pyinstaller --name ArcaStone --noconfirm --noconsole --hidden-import faiss --hidden-import sentence_transformers app.py
+          elif [[ "$RUNNER_OS" == "Linux" ]]; then
+            pyinstaller --name ArcaStone --noconfirm --windowed --hidden-import faiss --hidden-import sentence_transformers app.py
+          else
+            pyinstaller --name ArcaStone --noconfirm --windowed --hidden-import faiss --hidden-import sentence_transformers app.py
+          fi
+
+      - name: Archive artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ArcaStone-${{ matrix.os }}
+          path: |
+            dist/**
+          if-no-files-found: error
+
+
