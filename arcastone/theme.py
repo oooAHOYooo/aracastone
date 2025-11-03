@@ -7,7 +7,7 @@ from PySide6.QtGui import QPixmap
 from pathlib import Path
 
 
-# Palette tokens (CleanMyMac-adjacent)
+# Palette tokens
 PRIMARY_ACCENT = "#FF2D55"
 SECONDARY = "#8E8E93"
 SURFACE = "#F7F7FA"
@@ -15,9 +15,16 @@ TEXT_PRIMARY = "#1C1C1E"
 TEXT_SECONDARY = "#4A4A4A"
 BORDER = "#E6E6EE"
 
+# Glassmorphism tokens
+GLASS_BG = "rgba(255,255,255,0.10)"
+GLASS_BG_INPUT = "rgba(255,255,255,0.12)"
+GLASS_BORDER = "rgba(255,255,255,0.35)"
+GLASS_BORDER_SOFT = "rgba(255,255,255,0.18)"
+GLASS_SHADOW = "rgba(0,0,0,0.20)"
+
 
 def apply_qss(app: QApplication) -> None:
-    """Apply a global QSS for a soft, friendly, CleanMyMac-style UI."""
+    """Apply a global QSS for a soft, modern liquid-glass UI."""
     font_stack = "SF Pro Text, -apple-system, system-ui, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, sans-serif"
     qss = f"""
     /* Global */
@@ -26,19 +33,30 @@ def apply_qss(app: QApplication) -> None:
         color: {TEXT_PRIMARY};
     }}
     QWidget {{
-        background: white;
+        background: transparent;
         font-size: 14px;
+    }}
+    /* App canvas gradient (set via objectName=AppRoot) */
+    #AppRoot {{
+        background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                    stop:0 #F5F7FF, stop:1 #FDEBFF);
     }}
     /* Header gradient (opt-in via objectName=Header) */
     #Header {{
         background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
                     stop:0 #FF2D55, stop:1 #AF52DE);
         padding: 16px;
-        border-bottom: 1px solid {BORDER};
+        border-bottom: 1px solid {GLASS_BORDER_SOFT};
     }}
-    /* Cards (use card(widget) helper for shadow) */
+    /* Glass containers (use glass(widget) helper for shadow) */
+    QWidget[class="Glass"] {{
+        background: {GLASS_BG};
+        border: 1px solid {GLASS_BORDER};
+        border-radius: 18px;
+    }}
+    /* Cards (legacy helper) */
     QWidget[class="Card"] {{
-        background: {SURFACE};
+        background: rgba(255,255,255,0.85);
         border: 1px solid {BORDER};
         border-radius: 18px;
     }}
@@ -56,27 +74,60 @@ def apply_qss(app: QApplication) -> None:
         color: {SECONDARY};
     }}
     QPushButton {{
-        background: white;
-        border: 1px solid {BORDER};
+        background: {GLASS_BG_INPUT};
+        border: 1px solid {GLASS_BORDER_SOFT};
         border-radius: 10px;
         padding: 8px 14px;
     }}
-    QPushButton:hover {{ border-color: {PRIMARY_ACCENT}; }}
-    QPushButton:pressed {{ background: #f0f0f5; }}
+    QPushButton:hover {{
+        background: rgba(255,255,255,0.18);
+        border-color: {PRIMARY_ACCENT};
+    }}
+    QPushButton:pressed {{
+        background: rgba(255,255,255,0.22);
+    }}
     QPushButton[accent="true"] {{
         background: {PRIMARY_ACCENT};
         color: white;
         border: 1px solid {PRIMARY_ACCENT};
     }}
-    QLineEdit, QTextEdit, QListWidget {{
-        background: white;
-        border: 1px solid {BORDER};
+    QLineEdit, QTextEdit, QPlainTextEdit {{
+        background: {GLASS_BG_INPUT};
+        border: 1px solid {GLASS_BORDER_SOFT};
         border-radius: 10px;
         padding: 8px 10px;
     }}
+    /* Sidebar */
+    QListWidget#Sidebar {{
+        background: {GLASS_BG};
+        border: 1px solid {GLASS_BORDER};
+        border-radius: 14px;
+        padding: 6px;
+    }}
+    QListWidget#Sidebar::item {{
+        padding: 8px 10px;
+        margin: 2px 4px;
+        border-radius: 8px;
+    }}
+    QListWidget#Sidebar::item:selected {{
+        background: rgba(255,255,255,0.30);
+        color: {TEXT_PRIMARY};
+    }}
+    QListWidget#Sidebar::item:hover {{
+        background: rgba(255,255,255,0.20);
+    }}
+    /* Splitter */
+    QSplitter::handle {{
+        background: transparent;
+        width: 10px;
+    }}
+    QSplitter::handle:hover {{
+        background: rgba(0,0,0,0.03);
+    }}
+    /* StatusBar */
     QStatusBar {{
-        background: {SURFACE};
-        border-top: 1px solid {BORDER};
+        background: rgba(255,255,255,0.06);
+        border-top: 1px solid {GLASS_BORDER_SOFT};
         color: {TEXT_SECONDARY};
     }}
     """
@@ -95,6 +146,20 @@ def card(widget: QWidget, radius: int = 18, blur: float = 20.0, dx: float = 0.0,
     effect.setColor(Qt.black)
     widget.setGraphicsEffect(effect)
     # Also ensure the widget has the .Card style class
+    widget.setStyleSheet(f"border-radius: {radius}px;")
+
+
+def glass(widget: QWidget, radius: int = 18, blur: float = 30.0, dx: float = 0.0, dy: float = 2.0) -> None:
+    """Apply glassmorphism styling and a soft shadow to the widget."""
+    current = widget.objectName()
+    if not current:
+        widget.setObjectName("GlassInstance")
+    widget.setProperty("class", "Glass")
+    effect = QGraphicsDropShadowEffect(widget)
+    effect.setBlurRadius(blur)
+    effect.setOffset(dx, dy)
+    effect.setColor(Qt.black)
+    widget.setGraphicsEffect(effect)
     widget.setStyleSheet(f"border-radius: {radius}px;")
 
 

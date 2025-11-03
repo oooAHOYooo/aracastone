@@ -28,6 +28,7 @@ from .widgets.sitemap_panel import SitemapPanel
 from .workers.retrieval_worker import RetrievalWorker
 from .widgets.guide_panel import GuidePanel
 from .core.config import ensure_directories
+from .theme import glass
 
 
 class MainWindow(QMainWindow):
@@ -41,6 +42,7 @@ class MainWindow(QMainWindow):
         self._workers: list = []
 
         self.sidebar = QListWidget()
+        self.sidebar.setObjectName("Sidebar")
         self.sidebar.addItem(QListWidgetItem("Home"))
         self.sidebar.addItem(QListWidgetItem("Search"))
         self.sidebar.addItem(QListWidgetItem("Export"))
@@ -76,6 +78,7 @@ class MainWindow(QMainWindow):
         self.about.hide()
 
         split = QSplitter()
+        split.setHandleWidth(10)
         split.addWidget(self.sidebar)
         split.addWidget(self.stack)
         split.setStretchFactor(1, 1)
@@ -83,10 +86,17 @@ class MainWindow(QMainWindow):
         self.status = StatusBar()
         self.setStatusBar(self.status)
         container = QWidget()
+        container.setObjectName("AppRoot")
         root = QVBoxLayout(container)
         root.setContentsMargins(0, 0, 0, 0)
         root.addWidget(split)
         self.setCentralWidget(container)
+
+        # Styled backgrounds for glass to paint
+        self.sidebar.setAttribute(Qt.WA_StyledBackground, True)
+        self.stack.setAttribute(Qt.WA_StyledBackground, True)
+        glass(self.sidebar, radius=14)
+        glass(self.stack, radius=18)
 
         # Signals
         self.sidebar.currentRowChanged.connect(self._switch)
