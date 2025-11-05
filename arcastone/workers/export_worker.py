@@ -5,7 +5,7 @@ from typing import Iterable, Dict
 
 from PySide6.QtCore import QThread, Signal
 
-from ..core.export import export_digests
+from ..core.export import perform_export
 
 
 class ExportWorker(QThread):
@@ -13,15 +13,17 @@ class ExportWorker(QThread):
     finished_ok = Signal(dict)  # Dict[str, str] digest->path
     error = Signal(str)
 
-    def __init__(self, digests: Iterable[str], destination: Path):
+    def __init__(self, digests: Iterable[str], destination: Path, fmt: str, puzzle: str | None):
         super().__init__()
         self._digests = list(digests)
         self._destination = destination
+        self._fmt = fmt
+        self._puzzle = puzzle
 
     def run(self) -> None:
         try:
-            exported = export_digests(self._digests, self._destination)
-            self.finished_ok.emit({k: str(v) for k, v in exported.items()})
+            exported = perform_export(self._digests, self._destination, self._fmt, self._puzzle)
+            self.finished_ok.emit(exported)
         except Exception as exc:  # pragma: no cover
             self.error.emit(str(exc))
 

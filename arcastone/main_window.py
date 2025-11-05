@@ -14,10 +14,12 @@ from PySide6.QtWidgets import (
 )
 
 from .widgets.drop_ingest import DropIngest
+from .widgets.dashboard_panel import DashboardPanel
 from .widgets.search_panel import SearchPanel
 from .widgets.export_panel import ExportPanel
 from .widgets.about_panel import AboutPanel
 from .widgets.status_bar import StatusBar
+from .widgets.terminal_panel import TerminalPanel
 from .workers.ingest_worker import IngestWorker
 from .workers.index_worker import IndexWorker
 from .workers.search_worker import SearchWorker
@@ -43,38 +45,46 @@ class MainWindow(QMainWindow):
 
         self.sidebar = QListWidget()
         self.sidebar.setObjectName("Sidebar")
+        self.sidebar.addItem(QListWidgetItem("Dashboard"))
         self.sidebar.addItem(QListWidgetItem("Home"))
         self.sidebar.addItem(QListWidgetItem("Search"))
         self.sidebar.addItem(QListWidgetItem("Export"))
         self.sidebar.addItem(QListWidgetItem("Sitemap"))
         self.sidebar.addItem(QListWidgetItem("Guide"))
         self.sidebar.addItem(QListWidgetItem("Q&A"))
+        self.sidebar.addItem(QListWidgetItem("Terminal"))
         self.sidebar.addItem(QListWidgetItem("About"))
         self.sidebar.setFixedWidth(160)
 
+        self.dashboard = DashboardPanel()
         self.home = DropIngest()
         self.search = SearchPanel()
         self.export = ExportPanel()
         self.sitemap = SitemapPanel()
         self.guide = GuidePanel()
         self.qa = QAPanel()
+        self.terminal = TerminalPanel()
         self.about = AboutPanel()
 
         self.stack = QWidget()
         self.stack_layout = QVBoxLayout(self.stack)
         self.stack_layout.setContentsMargins(12, 12, 12, 12)
+        self.stack_layout.addWidget(self.dashboard)
         self.stack_layout.addWidget(self.home)
         self.stack_layout.addWidget(self.search)
         self.stack_layout.addWidget(self.export)
         self.stack_layout.addWidget(self.sitemap)
         self.stack_layout.addWidget(self.guide)
         self.stack_layout.addWidget(self.qa)
+        self.stack_layout.addWidget(self.terminal)
         self.stack_layout.addWidget(self.about)
+        self.home.hide()
         self.search.hide()
         self.export.hide()
         self.sitemap.hide()
         self.guide.hide()
         self.qa.hide()
+        self.terminal.hide()
         self.about.hide()
 
         split = QSplitter()
@@ -120,13 +130,15 @@ class MainWindow(QMainWindow):
         worker.finished.connect(_cleanup)
 
     def _switch(self, row: int) -> None:
-        self.home.setVisible(row == 0)
-        self.search.setVisible(row == 1)
-        self.export.setVisible(row == 2)
-        self.sitemap.setVisible(row == 3)
-        self.guide.setVisible(row == 4)
-        self.qa.setVisible(row == 5)
-        self.about.setVisible(row == 6)
+        self.dashboard.setVisible(row == 0)
+        self.home.setVisible(row == 1)
+        self.search.setVisible(row == 2)
+        self.export.setVisible(row == 3)
+        self.sitemap.setVisible(row == 4)
+        self.guide.setVisible(row == 5)
+        self.qa.setVisible(row == 6)
+        self.terminal.setVisible(row == 7)
+        self.about.setVisible(row == 8)
 
     def _ingest_files(self, files: list[Path]) -> None:
         self._pending_files.extend(files)
@@ -195,11 +207,11 @@ class MainWindow(QMainWindow):
         self._track_worker(worker)
         worker.start()
 
-    def _start_export(self, digests: list[str], dest: Path) -> None:
-        worker = ExportWorker(digests, dest)
+    def _start_export(self, digests: list[str], dest: Path, fmt: str, enc: bool, puzzle: str) -> None:
+        worker = ExportWorker(digests, dest, fmt, puzzle if enc else None)
 
         def finished(mapping: dict[str, str]) -> None:
-            self.status.info(f"Exported {len(mapping)} file(s)")
+            self.status.info(f"Export completed: {len(mapping)} item(s)")
 
         def err(msg: str) -> None:
             QMessageBox.critical(self, "Export Error", msg)
