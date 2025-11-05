@@ -59,12 +59,20 @@ class TerminalPanel(QWidget):
         # Input area
         input_row = QHBoxLayout()
         self.prompt_label = QLabel(self._prompt_text())
-        self.prompt_label.setStyleSheet("color: #00ff66;")
+        # Modern Windows-accent prompt color
+        self.prompt_label.setStyleSheet("color: #0078d4;")
         self.input = QLineEdit()
         self.input.returnPressed.connect(self._on_enter)
         self.input.installEventFilter(self)
         self.run_btn = QPushButton("Run")
         self.run_btn.clicked.connect(self._on_enter)
+        # Style input and button to match the dark terminal vibe
+        self.input.setStyleSheet(
+            "background-color: #0a0a0a; color: #f0f0f0; border: 1px solid #333; padding: 6px 8px; border-radius: 4px;"
+        )
+        self.run_btn.setStyleSheet(
+            "background-color: #1a1a1a; color: #f0f0f0; border: 1px solid #333; padding: 6px 10px; border-radius: 4px;"
+        )
         input_row.addWidget(self.prompt_label)
         input_row.addWidget(self.input)
         input_row.addWidget(self.run_btn)
@@ -75,8 +83,8 @@ class TerminalPanel(QWidget):
         layout.addWidget(self.output)
         layout.addLayout(input_row)
 
-        self._write_line("Microsoft MS-DOS-like ArcaShell [Version 1.0]")
-        self._write_line("(c) ArcaStone. All rights reserved.")
+        self._write_line("SYSTEM COMMAND CENTER")
+        self._write_line("ArcaStone Operations Console v1.0")
         self._write_line("")
         self._write_line("Type HELP for a list of commands.")
 
@@ -186,7 +194,7 @@ class TerminalPanel(QWidget):
         self._cmd_cls(args)
 
     def _cmd_ver(self, args: List[str]) -> None:
-        self._write_line("ArcaShell version 1.0 (MS-DOS style)")
+        self._write_line("System Command Center v1.0")
 
     def _resolve_path(self, arg: str | None) -> Path:
         if not arg or arg.strip() == "":

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import (
     QMainWindow,
     QWidget,
@@ -10,6 +10,8 @@ from PySide6.QtWidgets import (
     QListWidget,
     QListWidgetItem,
     QSplitter,
+    QScrollArea,
+    QFrame,
     QMessageBox,
 )
 
@@ -52,7 +54,6 @@ class MainWindow(QMainWindow):
         self.sidebar.addItem(QListWidgetItem("Sitemap"))
         self.sidebar.addItem(QListWidgetItem("Guide"))
         self.sidebar.addItem(QListWidgetItem("Q&A"))
-        self.sidebar.addItem(QListWidgetItem("Terminal"))
         self.sidebar.addItem(QListWidgetItem("About"))
         self.sidebar.setFixedWidth(160)
 
@@ -76,7 +77,6 @@ class MainWindow(QMainWindow):
         self.stack_layout.addWidget(self.sitemap)
         self.stack_layout.addWidget(self.guide)
         self.stack_layout.addWidget(self.qa)
-        self.stack_layout.addWidget(self.terminal)
         self.stack_layout.addWidget(self.about)
         self.home.hide()
         self.search.hide()
@@ -84,13 +84,17 @@ class MainWindow(QMainWindow):
         self.sitemap.hide()
         self.guide.hide()
         self.qa.hide()
-        self.terminal.hide()
         self.about.hide()
 
         split = QSplitter()
         split.setHandleWidth(10)
         split.addWidget(self.sidebar)
-        split.addWidget(self.stack)
+        # Wrap the stack in a scroll area so large panels are not cut off
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.NoFrame)
+        scroll.setWidget(self.stack)
+        split.addWidget(scroll)
         split.setStretchFactor(1, 1)
 
         self.status = StatusBar()
@@ -99,7 +103,29 @@ class MainWindow(QMainWindow):
         container.setObjectName("AppRoot")
         root = QVBoxLayout(container)
         root.setContentsMargins(0, 0, 0, 0)
-        root.addWidget(split)
+        # Main content over terminal in a vertical splitter so terminal is always present
+        vsplit = QSplitter(Qt.Vertical)
+        vsplit.setHandleWidth(8)
+        vsplit.addWidget(split)
+        vsplit.addWidget(self.terminal)
+        vsplit.setStretchFactor(0, 4)
+        vsplit.setStretchFactor(1, 1)
+        vsplit.setChildrenCollapsible(False)
+        try:
+            vsplit.setCollapsible(0, False)
+            vsplit.setCollapsible(1, False)
+        except Exception:
+            pass
+        self.terminal.setMinimumHeight(160)
+        # Provide an initial reasonable size distribution
+        def _apply_sizes():
+            try:
+                h = max(400, self.height())
+                vsplit.setSizes([int(h * 0.7), max(160, int(h * 0.3))])
+            except Exception:
+                pass
+        QTimer.singleShot(0, _apply_sizes)
+        root.addWidget(vsplit)
         self.setCentralWidget(container)
 
         # Styled backgrounds for glass to paint
@@ -137,8 +163,8 @@ class MainWindow(QMainWindow):
         self.sitemap.setVisible(row == 4)
         self.guide.setVisible(row == 5)
         self.qa.setVisible(row == 6)
-        self.terminal.setVisible(row == 7)
-        self.about.setVisible(row == 8)
+        # Terminal is always visible at the bottom; no toggle via sidebar
+        self.about.setVisible(row == 7)
 
     def _ingest_files(self, files: list[Path]) -> None:
         self._pending_files.extend(files)

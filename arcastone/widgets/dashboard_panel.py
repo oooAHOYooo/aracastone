@@ -43,6 +43,8 @@ class DashboardPanel(QWidget):
     def __init__(self):
         super().__init__()
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(12, 12, 12, 12)
+        layout.setSpacing(12)
 
         # Controls
         controls = QHBoxLayout()
@@ -55,6 +57,9 @@ class DashboardPanel(QWidget):
         # Summary group
         summary_group = QGroupBox("Daily Dashboard")
         summary_grid = QGridLayout(summary_group)
+        summary_grid.setContentsMargins(10, 8, 10, 10)
+        summary_grid.setHorizontalSpacing(12)
+        summary_grid.setVerticalSpacing(6)
         self.total_docs = QLabel("0")
         self.today_docs = QLabel("0")
         self.total_pages = QLabel("0")
@@ -93,17 +98,23 @@ class DashboardPanel(QWidget):
         # Activity history
         act_group = QGroupBox("Activity History")
         act_layout = QVBoxLayout(act_group)
+        act_layout.setContentsMargins(10, 8, 10, 10)
+        act_layout.setSpacing(8)
         self.activity_table = QTableWidget(0, 3)
         self.activity_table.setHorizontalHeaderLabels(["Time", "Event", "Details"])
         self.activity_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
         self.activity_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
         self.activity_table.horizontalHeader().setSectionResizeMode(2, QHeaderView.Stretch)
+        self.activity_table.setWordWrap(True)
+        self.activity_table.setAlternatingRowColors(True)
         act_layout.addWidget(self.activity_table)
         layout.addWidget(act_group)
 
         # Data positions
         pos_group = QGroupBox("Data Positions")
         pos_layout = QVBoxLayout(pos_group)
+        pos_layout.setContentsMargins(10, 8, 10, 10)
+        pos_layout.setSpacing(8)
         self.pos_tree = QTreeWidget()
         self.pos_tree.setHeaderLabels(["Item", "Value"]) 
         self.pos_tree.header().setSectionResizeMode(0, QHeaderView.ResizeToContents)
