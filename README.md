@@ -1,6 +1,30 @@
 # ArcaStone
 
-Offline-first desktop PDF indexing and search app (PySide6), CleanMyMac-style UI.
+Offline-first desktop PDF indexing and search app (PySide6), flat classic Windows-style UI.
+
+## Quick start (for anyone trying it out)
+
+Your friend can run from source with Python 3.11; no private data is included. The app creates its own `data/` folder on first run.
+
+```bash
+# 1) Clone and enter the repo
+git clone https://github.com/<you>/arcastone.git
+cd arcastone
+
+# 2) Create a venv and install deps
+python3.11 -m venv .venv
+source .venv/bin/activate   # Windows: .venv\\Scripts\\activate
+pip install -r requirements.txt
+
+# 3) One-time: cache the embedding model locally (requires internet once)
+python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2', cache_folder='data/index/.models')"
+
+# 4) Run
+python app.py
+```
+
+Then drag-and-drop a few PDFs into Home → click “Index Documents” → Search.
+Data is stored under `data/` in the project root and never leaves the machine.
 
 ## Features (MVP)
 - Drag-and-drop PDFs to ingest into a content-addressed store (BLAKE3)
@@ -26,10 +50,13 @@ dev:
 ```
 
 ## Model cache (offline-first)
-This app does not make network calls. You must have the model locally cached.
+This app runs offline by default. You must have models locally cached.
 
-1. Embedding model: on a machine with internet, cache `all-MiniLM-L6-v2` using sentence-transformers and place it under `data/models/` (the app sets `SENTENCE_TRANSFORMERS_HOME` automatically).
-2. Local LLM for Q&A (recommended: Qwen2.5 1.5B Instruct):
+1. Embedding model (required): cache `all-MiniLM-L6-v2` under `data/index/.models`:
+```bash
+python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2', cache_folder='data/index/.models')"
+```
+2. Local LLM for Q&A (optional, recommended: Qwen2.5 1.5B Instruct):
 ```bash
 python scripts/models/prepare_local_llm.py \
   --model Qwen/Qwen2.5-1.5B-Instruct \
@@ -50,7 +77,8 @@ poetry run pytest -q
 
 ## Notes
 - Optional OCR is supported via `ocrmypdf` when present in PATH.
-- Data is stored under `data/` (blobs, index, models, manifest, tlog).
+- Data is stored under `data/` (blobs, index, models, manifest, tlog). To reset, delete the `data/` folder.
+- macOS tip: if FAISS complains about OpenMP, install `libomp` with Homebrew: `brew install libomp`.
 
 ## Dev
 ```bash
